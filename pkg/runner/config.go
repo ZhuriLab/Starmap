@@ -95,6 +95,16 @@ func (c *Providers) UnmarshalFrom(file string) error {
 	return yaml.NewDecoder(f).Decode(c)
 }
 
+// CheckConfigExists checks if the config file exists in the given path
+func CheckConfigExists(configPath string) bool {
+	if _, err := os.Stat(configPath); err == nil {
+		return true
+	} else if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
 // MarshalWrite writes the marshaled yaml config to disk
 func (c *Providers) MarshalWrite(file string) error {
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)

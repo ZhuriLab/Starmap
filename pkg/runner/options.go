@@ -6,18 +6,14 @@ import (
 	"io"
 	"os"
 	"os/user"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strings"
 
-	"github.com/projectdiscovery/fileutil"
-	"github.com/projectdiscovery/goflags"
+	"github.com/ZhuriLab/Starmap/pkg/goflags"
 	"github.com/projectdiscovery/gologger"
 )
 
-var (
-	defaultConfigLocation         = filepath.Join(userHomeDir(), ".config/Starmap/config.yaml")
-)
 
 type Options struct {
 	Verbose        bool // Verbose flag indicates whether to show verbose output or not
@@ -72,11 +68,17 @@ type Options struct {
 func ParseOptions() *Options {
 	showBanner()
 
+	config, err := GetConfigDirectory()
+
+	if err != nil {
+		// This should never be reached
+		gologger.Fatal().Msgf("Could not get user home: %s\n", err)
+	}
+
 	options := &Options{}
-	var err error
+
 	flagSet := goflags.NewFlagSet()
 	flagSet.SetDescription(`Starmap is a subdomain discovery tool that discovers subdomains for websites by using passive online sources and DNS brute.`)
-
 
 	createGroup(flagSet, "input", "Input",
 		flagSet.NormalizedStringSliceVarP(&options.Domain, "domain", "d", []string{}, "domains to find subdomains for\n枚举的目标域名"),
@@ -99,7 +101,7 @@ func ParseOptions() *Options {
 
 	createGroup(flagSet, "output", "Output",
 		flagSet.StringVarP(&options.OutputFile, "output", "o", "", "file to write output to\n输出文件名"),
-		flagSet.BoolVarP(&options.JSON, "json", "oJ", false, "write output in JSONL(ines) format\nJson格式输出，该选项输出内容丰富"),
+		flagSet.BoolVarP(&options.JSON, "json", "oJ", false, "write output in JSONL(ines) format\nJson格式输出，该选项输出内容丰富,输出到文件需要配合 -o res.json"),
 		//flagSet.StringVarP(&options.OutputDirectory, "output-dir", "oD", "", "directory to write output (-dL only)"),
 		//flagSet.BoolVarP(&options.CaptureSources, "collect-sources", "cs", false, "include all sources in the output (-json only)"),
 		//flagSet.BoolVarP(&options.HostIP, "ip", "oI", false, "include host IP in output (-active only)"),
@@ -109,7 +111,7 @@ func ParseOptions() *Options {
 	options.HostIP = false
 
 	createGroup(flagSet, "configuration", "Configuration",
-		flagSet.StringVar(&options.Config, "config", defaultConfigLocation, "flag config file\n自定义API密钥等的配置文件位置"),
+		flagSet.StringVar(&options.Config, "config", path.Join(config, "config.yaml"), "flag config file\n自定义API密钥等的配置文件位置"),
 		//flagSet.NormalizedStringSliceVar(&options.Resolvers, "r", []string{}, "comma separated list of resolvers to use"),
 		//flagSet.StringVarP(&options.ResolverList, "rlist", "rL", "", "file containing list of resolvers to use"),
 		flagSet.BoolVarP(&options.RemoveWildcard, "active", "nW", false, "display active subdomains only\n仅显示活动子域"),
@@ -147,7 +149,7 @@ func ParseOptions() *Options {
 
 	createGroup(flagSet, "takeover", "subdomain takeover",
 		flagSet.BoolVar(&options.Takeover, "takeover", false, " Scan subdomain takeover (default False).\n子域名接管检测 (默认：false)"),
-	flagSet.BoolVar(&options.SAll, "sa", false, "subdomain take over: Request to test each URL (by default, only the URL matching CNAME is requested to test).\n子域名接管检测：请求测试每个URL（默认情况下，仅请求测试与CNAME匹配的URL）"),
+		flagSet.BoolVar(&options.SAll, "sa", false, "subdomain take over: Request to test each URL (by default, only the URL matching CNAME is requested to test).\n子域名接管检测：请求测试每个URL（默认情况下，仅请求测试与CNAME匹配的URL）"),
 	)
 
 	if err := flagSet.Parse(); err != nil {
@@ -171,7 +173,7 @@ func ParseOptions() *Options {
 
 	// Check if the application loading with any provider configuration, then take it
 	// Otherwise load the default provider config
-	if fileutil.FileExists(options.Config) {
+	if !CheckConfigExists(options.Config) {
 		options.firstRunTasks()
 	} else {
 		options.normalRunTasks()

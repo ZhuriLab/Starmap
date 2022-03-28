@@ -36,7 +36,7 @@ OUTPUT:
      -o, -output string  file to write output to
      输出文件名
      -oJ, -json  write output in JSONL(ines) format
-     Json格式输出，该选项输出内容丰富
+     Json格式输出，该选项输出内容丰富,输出到文件需要配合 -o res.json
 
 CONFIGURATION:
      -config string  flag config file

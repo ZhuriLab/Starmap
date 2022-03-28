@@ -72,6 +72,7 @@ func (options *Options) firstRunTasks() {
 	}
 
 	err := config.MarshalWrite(options.Config)
+
 	if err != nil {
 		gologger.Fatal().Msgf("Could not write configuration file to %s: %s\n", options.Config, err)
 	}

@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.0.4
+- 修复修改二进制文件名可能读取不到配置文件的 bug
 
 ## v0.0.3
 - 参考 [subjack](https://github.com/haccer/subjack) 添加子域名接管检测
