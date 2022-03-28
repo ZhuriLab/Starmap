@@ -1,0 +1,59 @@
+package util
+
+import (
+	"bufio"
+	"github.com/ZhuriLab/Starmap/pkg/resolve"
+	"math/rand"
+	"os"
+	"time"
+)
+
+
+func RandomStr(n int) string {
+	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz1234567890")
+	rand.Seed(time.Now().UnixNano())
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+// LinesInFile 读取文件 返回每行的数组
+func LinesInFile(fileName string) ([]string, error) {
+	result := []string{}
+	f, err := os.Open(fileName)
+	if err != nil {
+		return result, err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line != "" {
+			result = append(result, line)
+		}
+	}
+	return result, nil
+}
+
+func MergeMap(map1, map2 map[string]resolve.HostEntry) map[string]resolve.HostEntry {
+	map3 := make(map[string]resolve.HostEntry)
+
+	for i,v := range map1 {
+		for j,w := range map2 {
+			if i== j {
+				map3[i] = w
+
+			}else{
+				if _, ok := map3[i]; !ok {
+					map3[i] = v
+				}
+				if _, ok := map3[j]; !ok {
+					map3[j] = w
+				}
+			}
+		}
+	}
+	return map3
+}

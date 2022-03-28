@@ -1,0 +1,60 @@
+name: 🎉 Build Binary
+on:
+  create:
+    tags:
+      - v*
+  workflow_dispatch:
+jobs:
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    steps:
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Set up libpcap-dev
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install libpcap-dev gcc -y
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build On Linux
+        run: |
+          go build -o Starmap-linux cmd/Starmap.go
+          chmod +x Starmap-linux
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GOENABLE: 1
+          CGO_LDFLAGS: "-Wl,-static -L/usr/lib/x86_64-linux-gnu/libpcap.a -lpcap -Wl,-Bdynamic"
+      - name: Build On Darwin
+        run: |
+          go build -o Starmap-darwin cmd/Starmap.go
+          chmod +x Starmap-darwin
+        if: matrix.os == 'macos-latest'
+      - name: Build On Windows
+        run: |
+          go build -o Starmap-windows.exe cmd/Starmap.go
+        if: matrix.os == 'windows-latest'
+        env:
+          GOOS: windows
+          GOENABLE: 1
+      - name: Release
+        uses: softprops/action-gh-release@master
+        with:
+          files: Starmap-*
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
