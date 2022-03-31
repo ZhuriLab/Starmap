@@ -5,6 +5,7 @@ import (
 	"github.com/ZhuriLab/Starmap/pkg/resolve"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -56,4 +57,31 @@ func MergeMap(map1, map2 map[string]resolve.HostEntry) map[string]resolve.HostEn
 		}
 	}
 	return map3
+}
+
+// RemoveDuplicateElement  数组去重
+func RemoveDuplicateElement(strs []string) []string {
+	result := make([]string, 0, len(strs))
+	temp := map[string]struct{}{}
+	for _, item := range strs {
+		if item != "" {
+			if _, ok := temp[item]; !ok {
+				temp[item] = struct{}{}
+				result = append(result, item)
+			}
+		}
+
+	}
+	return result
+}
+
+// In 判断一个字符串是否在另一个字符数组里面，存在返回true
+func In(target string, strs []string) bool {
+	target = strings.TrimSpace(target)
+	for _, element := range strs {
+		if strings.Contains(target, element) {
+			return true
+		}
+	}
+	return false
 }

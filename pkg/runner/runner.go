@@ -20,6 +20,7 @@ type Runner struct {
 	options        *Options
 	passiveAgent   *passive.Agent
 	resolverClient *resolve.Resolver
+	Resolvers    []string
 }
 
 // NewRunner creates a new runner struct instance by parsing

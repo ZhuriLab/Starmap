@@ -5,6 +5,7 @@ import (
 	"github.com/ZhuriLab/Starmap/pkg/active"
 	"github.com/ZhuriLab/Starmap/pkg/subTakeOver"
 	"github.com/ZhuriLab/Starmap/pkg/util"
+	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"io"
 	"strings"
 	"sync"
@@ -26,17 +27,17 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 	// and also create the active resolving engine for the domain.
 	keys := r.options.YAMLConfig.GetKeys()
 
-	// Check if the user has asked to remove wildcards explicitly.
-	// If yes, create the resolution pool and get the wildcards for the current domain
-	var resolutionPool *resolve.ResolutionPool
-	if r.options.RemoveWildcard {
-		resolutionPool = r.resolverClient.NewResolutionPool(r.options.Threads, r.options.RemoveWildcard)
-		err := resolutionPool.InitWildcards(domain)
-		if err != nil {
-			// Log the error but don't quit.
-			gologger.Warning().Msgf("Could not get wildcards for domain %s: %s\n", domain, err)
-		}
-	}
+	//// Check if the user has asked to remove wildcards explicitly.
+	//// If yes, create the resolution pool and get the wildcards for the current domain
+	//var resolutionPool *resolve.ResolutionPool
+	//if r.options.RemoveWildcard {
+	//	resolutionPool = r.resolverClient.NewResolutionPool(r.options.Threads, r.options.RemoveWildcard)
+	//	err := resolutionPool.InitWildcards(domain)
+	//	if err != nil {
+	//		// Log the error but don't quit.
+	//		gologger.Warning().Msgf("Could not get wildcards for domain %s: %s\n", domain, err)
+	//	}
+	//}
 
 	// Run the passive subdomain enumeration
 	now := time.Now()
@@ -85,53 +86,77 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 				// If the user asked to remove wildcard then send on the resolve
 				// queue. Otherwise, if mode is not verbose print the results on
 				// the screen as they are discovered.
-				if r.options.RemoveWildcard {
-					resolutionPool.Tasks <- hostEntry
-				}
+				//
 			}
 		}
-		// Close the task channel only if wildcards are asked to be removed
-		if r.options.RemoveWildcard {
-			close(resolutionPool.Tasks)
-		}
+		//// Close the task channel only if wildcards are asked to be removed
+		//if r.options.RemoveWildcard {
+		//	close(resolutionPool.Tasks)
+		//}
 		wg.Done()
 	}()
 
 	// If the user asked to remove wildcards, listen from the results
 	// queue and write to the map. At the end, print the found results to the screen
-	foundResults := make(map[string]resolve.Result)
+	//foundResults := make(map[string]resolve.Result)
+	//if r.options.RemoveWildcard {
+	//	// Process the results coming from the resolutions pool
+	//	for result := range resolutionPool.Results {
+	//		switch result.Type {
+	//		case resolve.Error:
+	//			gologger.Warning().Msgf("Could not resolve host: %s\n", result.Error)
+	//		case resolve.Subdomain:
+	//			// Add the found subdomain to a map.
+	//			if _, ok := foundResults[result.Host]; !ok {
+	//				foundResults[result.Host] = result
+	//			}
+	//		}
+	//	}
+	//}
+	wg.Wait()
+
+
+	var wildcardIPs map[string]struct{}
+
 	if r.options.RemoveWildcard {
-		// Process the results coming from the resolutions pool
-		for result := range resolutionPool.Results {
-			switch result.Type {
-			case resolve.Error:
-				gologger.Warning().Msgf("Could not resolve host: %s\n", result.Error)
-			case resolve.Subdomain:
-				// Add the found subdomain to a map.
-				if _, ok := foundResults[result.Host]; !ok {
-					foundResults[result.Host] = result
-				}
-			}
+		gologger.Info().Msgf("%s 检测泛解析", domain)
+		var err error
+		// 泛解析客户端初始化
+		r.resolverClient = resolve.New()
+
+		r.resolverClient.DNSClient, err = dnsx.New(dnsx.Options{BaseResolvers: r.Resolvers, MaxRetries: 5})
+
+		if err != nil {
+			gologger.Error().Msgf("泛解析客户端初始化错误: %s", err)
+		}
+
+		err, wildcardIPs = resolve.InitWildcards(r.resolverClient, domain, r.Resolvers, r.options.MaxWildcardChecks)
+		if err != nil {
+			// Log the error but don't quit.
+			gologger.Warning().Msgf("Could not get wildcards for domain %s: %s\n", domain, err)
+		}
+
+		if len(wildcardIPs) > 0 {
+			gologger.Info().Msgf("域名:%s 存在泛解析, 自动过滤泛解析\n", domain)
 		}
 	}
-	wg.Wait()
+
 
 	if r.options.Verify { // 验证模式
 		l := len(uniqueMap)
-		uniqueMap = active.Verify(uniqueMap, r.options.Silent, r.options.DNS)
+		uniqueMap = active.Verify(uniqueMap, r.options.Silent, r.Resolvers, wildcardIPs)
 		gologger.Info().Msgf("A total of %d were collected in passive mode, and %d were verified to be alive", l, len(uniqueMap))
 
 	} else {
 		gologger.Info().Msgf("Passive acquisition end, Found %d subdomains.", len(uniqueMap))
 	}
 
-
 	if r.options.Brute {
 		if r.options.Number > 1 {
 			n := make(map[string]resolve.HostEntry)
 			// dns 爆破次数
 			for i := 1; i <= r.options.Number; i++ {
-				test := active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.options.DNS)
+				test := active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs)
 				if i > 1 {
 					n = util.MergeMap(uniqueMap, test)
 				}
@@ -139,7 +164,7 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 			}
 			uniqueMap = n
 		} else {
-			uniqueMap = active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.options.DNS)
+			uniqueMap = active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs)
 		}
 
 	}
@@ -155,19 +180,25 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 	// Now output all results in output writers
 	var err error
 	for _, w := range outputs {
-		if r.options.HostIP {
-			err = outputter.WriteHostIP(foundResults, w)
+		if r.options.CaptureSources {
+			err = outputter.WriteSourceHost(sourceMap, w)
 		} else {
-			if r.options.RemoveWildcard {
-				err = outputter.WriteHostNoWildcard(foundResults, w)
-			} else {
-				if r.options.CaptureSources {
-					err = outputter.WriteSourceHost(sourceMap, w)
-				} else {
-					err = outputter.WriteHost(uniqueMap, w)
-				}
-			}
+			err = outputter.WriteHost(uniqueMap, w)
 		}
+
+		//if r.options.HostIP {
+		//	err = outputter.WriteHostIP(foundResults, w)
+		//} else {
+			//if r.options.RemoveWildcard {
+			//	err = outputter.WriteHostNoWildcard(foundResults, w)
+			//} else {
+			//	if r.options.CaptureSources {
+			//		err = outputter.WriteSourceHost(sourceMap, w)
+			//	} else {
+			//		err = outputter.WriteHost(uniqueMap, w)
+			//	}
+			//}
+		//}
 		if err != nil {
 			gologger.Error().Msgf("Could not verbose results for %s: %s\n", domain, err)
 			return err, nil
@@ -176,11 +207,7 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 
 	// Show found subdomain count in any case.
 	duration := durafmt.Parse(time.Since(now)).LimitFirstN(maxNumCount).String()
-	if r.options.RemoveWildcard {
-		gologger.Info().Msgf("Found %d subdomains for %s in %s\n", len(foundResults), domain, duration)
-	} else {
-		gologger.Info().Msgf("Found %d subdomains for %s in %s\n", len(uniqueMap), domain, duration)
-	}
 
+	gologger.Info().Msgf("Found %d subdomains for %s in %s\n", len(uniqueMap), domain, duration)
 	return nil, uniqueMap
 }

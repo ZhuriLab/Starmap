@@ -1,12 +1,13 @@
 package active
 
 import (
+	"context"
 	"github.com/ZhuriLab/Starmap/pkg/resolve"
 	"github.com/ZhuriLab/Starmap/pkg/util"
 	"github.com/projectdiscovery/gologger"
 )
 
-func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fileName string, level int, levelDict string, dns string) map[string]resolve.HostEntry {
+func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fileName string, level int, levelDict string, resolvers []string, wildcardIPs map[string]struct{}) map[string]resolve.HostEntry {
 	gologger.Info().Msgf("Start DNS blasting of %s", domain)
 	var levelDomains []string
 	if levelDict != "" {
@@ -19,16 +20,6 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		levelDomains = GetDefaultSubNextData()
 	}
 
-	var resolvers []string
-	switch dns {
-	case "cn":
-		resolvers = resolve.DefaultResolversCN
-	case "in":
-		resolvers = resolve.DefaultResolvers
-	case "all":
-		resolvers = append(resolve.DefaultResolvers, resolve.DefaultResolversCN...)
-	}
-
 	opt := &Options {
 		Rate:         Band2Rate("2m"),
 		Domain:       domain,
@@ -36,7 +27,7 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		Resolvers:    resolvers,
 		Output:       "",
 		Silent:       silent,
-		SkipWildCard: false,
+		WildcardIPs:  wildcardIPs,
 		TimeOut:      5,
 		Retry:        6,
 		Level:        level,  				// 枚举几级域名，默认为2，二级域名,
@@ -44,28 +35,22 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		Method:       "enum",
 	}
 
+	ctx := context.Background()
+
 	r, err := New(opt)
+
 	if err != nil {
 		gologger.Fatal().Msgf("%s", err)
 	}
 
-	enumMap := r.RunEnumeration(uniqueMap)
+	enumMap := r.RunEnumeration(uniqueMap, ctx)
 
 	r.Close()
 	return enumMap
 }
 
-func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, dns string) map[string]resolve.HostEntry {
+func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}) map[string]resolve.HostEntry {
 	gologger.Info().Msgf("Start to verify the collected sub domain name results, a total of %d", len(uniqueMap))
-	var resolvers []string
-	switch dns {
-	case "cn":
-		resolvers = resolve.DefaultResolversCN
-	case "in":
-		resolvers = resolve.DefaultResolvers
-	case "all":
-		resolvers = append(resolve.DefaultResolvers, resolve.DefaultResolversCN...)
-	}
 
 	opt := &Options {
 		Rate:         Band2Rate("2m"),
@@ -74,18 +59,19 @@ func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, dns string) map
 		Resolvers:    resolvers,
 		Output:       "",
 		Silent:       silent,
-		SkipWildCard: false,
+		WildcardIPs:  wildcardIPs,
 		TimeOut:      5,
 		Retry:        6,
 		Method:       "verify",
 	}
+	ctx := context.Background()
 
 	r, err := New(opt)
 	if err != nil {
 		gologger.Fatal().Msgf("%s", err)
 	}
 
-	AuniqueMap := r.RunEnumerationVerify(uniqueMap)
+	AuniqueMap := r.RunEnumerationVerify(uniqueMap, ctx)
 
 	r.Close()
 

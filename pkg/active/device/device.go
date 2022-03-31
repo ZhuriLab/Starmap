@@ -12,7 +12,7 @@ import (
 )
 
 func AutoGetDevices() *EtherTable {
-	domain := util.RandomStr(4) + ".i.hacking8.com"
+	domain := util.RandomStr(6) + ".baidu.com"
 	signal := make(chan *EtherTable)
 	devices, err := pcap.FindAllDevs()
 	if err != nil {

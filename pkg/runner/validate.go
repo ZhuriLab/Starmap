@@ -36,8 +36,8 @@ func (options *Options) validateOptions() error {
 	return nil
 }
 
-// configureOutput configures the output on the screen
-func (options *Options) configureOutput() {
+// ConfigureOutput configures the output on the screen
+func (options *Options) ConfigureOutput() {
 	// If the user desires verbose output, show verbose output
 	if options.Verbose {
 		gologger.DefaultLogger.SetMaxLevel(levels.LevelVerbose)

@@ -1,5 +1,6 @@
 # 🌟 Starmap
- 以 subfinder 为基础，融合 ksubdomain、 Amass 的一些优点进行二次开发的一款子域名收集工具，并增加了子域名接管检测功能。可以很方便作为 go 库集成进入项目中。
+![Starmap](https://socialify.git.ci/ZhuriLab/Starmap/image?description=1&font=Inter&forks=1&issues=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F69614236%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
+以 subfinder 为基础，融合 ksubdomain、 Amass 的一些优点进行二次开发的一款子域名收集工具，并增加了子域名接管检测功能。可以很方便作为 go 库集成进入项目中。
 
 - [Amass](https://github.com/OWASP/Amass/) 虽然搜集的方法多，但太笨重，不方便集成，目标多了会内存爆炸
 - [subfinder](https://github.com/projectdiscovery/subfinder) 非常方便集成，但是只有被动的方式
@@ -105,7 +106,7 @@ func main() {
 	config.AllSources = passive.DefaultAllSources
 	config.Recursive = passive.DefaultRecursiveSources
 
-	runnerInstance, err := runner.NewRunner(&runner.Options{
+	options := &runner.Options{
 		Threads:            10, // Thread controls the number of threads to use for active enumerations
 		Timeout:            30, // Timeout is the seconds to wait for sources to respond
 		MaxEnumerationTime: 10, // MaxEnumerationTime is the maximum amount of time in mins to wait for enumeration
@@ -118,7 +119,8 @@ func main() {
 		All: 				true,
 		Verbose: 			false,
 		Brute:				true,
-		Verify:             true,	// 验证找到的域名
+		Verify:             true,	// 验证找到的域名 
+		RemoveWildcard: 	true,	// 泛解析过滤 
 		Silent: 			false,	// 是否为静默模式，只输出找到的域名
 		DNS: 				"cn",	// dns 服务器区域选择，根据目标选择不同区域得到的结果不同，国内网站的话，选择 cn，dns 爆破结果比较多
 		BruteWordlist:      "",		// 爆破子域的域名字典，不填则使用内置的
@@ -126,9 +128,11 @@ func main() {
 		LevelDic:           "",		// 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认
 		Takeover: 			false,	// 子域名接管检测
 		SAll: 				false,  // 子域名接管检测中请求全部 url，默认只对匹配的 cname 进行检测
+	}
 
-	})
+	options.ConfigureOutput()
 
+	runnerInstance, err := runner.NewRunner(options)
 
 	buf := bytes.Buffer{}
 	err, subdomains := runnerInstance.EnumerateSingleDomain(context.Background(), "baidu.com", []io.Writer{&buf})
@@ -168,7 +172,9 @@ func main() {
 
 # 💡 Tips
  - 指定不同的 dns ，获取到的结果会不同。比如：如果目标是国内的网站，选择国内的 dns 得到的子域名结果可能会比较多
-
+ - 提示 `pcap打开失败:vnic0: You don't have permission to capture on that device ((cannot open BPF device) /dev/bpf0: Permission denied)`等错误
+   
+    执行`sudo chmod 777 /dev/bpf*` 或 `sudo ./Starmap`
 
 # 👀 参考
 - [subfinder](https://github.com/projectdiscovery/subfinder)

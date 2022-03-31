@@ -13,7 +13,7 @@ type Options struct {
 	Resolvers    []string
 	Output       string // 输出文件名
 	Silent       bool
-	SkipWildCard bool
+	WildcardIPs  map[string]struct{}
 	TimeOut      int
 	Retry        int
 	Method       string // verify模式 enum模式 test模式

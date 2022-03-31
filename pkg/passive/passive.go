@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/projectdiscovery/gologger"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping"
 )
 
@@ -45,9 +44,9 @@ func (a *Agent) EnumerateSubdomains(domain string, keys *subscraping.Keys, proxy
 		}
 		wg.Wait()
 
-		for source, data := range timeTaken {
-			gologger.Verbose().Label(source).Msg(data)
-		}
+		//for source, data := range timeTaken {
+		//	gologger.Verbose().Label(source).Msg(data)
+		//}
 
 		close(results)
 		cancel()

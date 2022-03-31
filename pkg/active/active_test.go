@@ -8,7 +8,10 @@ import (
 
 func TestEnum(t *testing.T) {
 	uniqueMap := make(map[string]resolve.HostEntry)
-	uniqueMap = Enum("baidu.com", uniqueMap, false,"", 2,"","cn")
+	resolvers := []string{
+		"114.114.114.114",
+	}
+	uniqueMap = Enum("baidu.com", uniqueMap, false,"", 2,"",resolvers, nil)
 	for k, v := range uniqueMap {
 		fmt.Println(k, v)
 	}
@@ -24,11 +27,14 @@ func TestVerify(t *testing.T) {
 
 	fmt.Println(uniqueMap)
 
-	uniqueMap = Verify(uniqueMap, true, "cn")
+	resolvers := []string{
+		"114.114.114.114",
+	}
+
+	uniqueMap = Verify(uniqueMap, true, resolvers, nil)
 	for k, v := range uniqueMap {
 		fmt.Println(k, v)
 	}
-
 }
 
 

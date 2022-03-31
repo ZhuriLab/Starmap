@@ -61,6 +61,7 @@ type Options struct {
 	DNS                string // DNS server
 	Takeover		   bool   // subdomain takeover
 	SAll               bool   // Request to test each URL (by default, only the URL matching CNAME is requested to test).
+	MaxWildcardChecks  int		// MaxWildcardChecks Number of random domain names
 }
 
 
@@ -114,7 +115,6 @@ func ParseOptions() *Options {
 		flagSet.StringVar(&options.Config, "config", path.Join(config, "config.yaml"), "flag config file\n自定义API密钥等的配置文件位置"),
 		//flagSet.NormalizedStringSliceVar(&options.Resolvers, "r", []string{}, "comma separated list of resolvers to use"),
 		//flagSet.StringVarP(&options.ResolverList, "rlist", "rL", "", "file containing list of resolvers to use"),
-		flagSet.BoolVarP(&options.RemoveWildcard, "active", "nW", false, "display active subdomains only\n仅显示活动子域"),
 		flagSet.StringVar(&options.Proxy, "proxy", "", "http proxy to use with subfinder\n指定被动api获取子域名时的代理"),
 	)
 	options.Resolvers = nil
@@ -144,7 +144,9 @@ func ParseOptions() *Options {
 		flagSet.IntVar(&options.Number, "n", 1, "Number of DNS forced subdomains\ndns爆破每个域名的次数，默认跑一次"),
 		flagSet.BoolVar(&options.Brute, "b", true, "Use DNS brute forcing subdomain(default true)\n被动加 dns 主动爆破(默认使用)"),
 		flagSet.BoolVar(&options.Verify, "verify", false, "DNS authentication survival, Export only verified domain names\n验证被动获取的域名，使用后仅输出验证存活的域名"),
-		flagSet.StringVar(&options.DNS, "dns", "cn", "DNS server, cn:China dns, in:International, all:(cn+in DNS),Select according to the target. \nDNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, 根据目标选择"),
+		flagSet.StringVar(&options.DNS, "dns", "cn", "DNS server, cn:China dns, in:International, all:(cn+in DNS), conf:(read ./config/Starmap/config.yaml), Select according to the target. \nDNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, conf: 从配置文件 ./config/Starmap/config.yaml获取)，根据目标选择"),
+		flagSet.BoolVarP(&options.RemoveWildcard, "active", "nW", true, "Domain name pan resolution filtering\n爆破时过滤泛解析(default true)"),
+		flagSet.IntVar(&options.MaxWildcardChecks, "mW", 0, "Number of random domain names during universal resolution detection(default len(resolvers)*2)\n泛解析检测时的随机域名数量(default len(resolvers)*2)"),
 	)
 
 	createGroup(flagSet, "takeover", "subdomain takeover",
@@ -164,7 +166,7 @@ func ParseOptions() *Options {
 	options.Stdin = hasStdin()
 
 	// Read the inputs and configure the logging
-	options.configureOutput()
+	options.ConfigureOutput()
 
 	if options.Version {
 		gologger.Info().Msgf("Current Version: %s\n", Version)

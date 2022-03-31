@@ -1,12 +1,11 @@
 package runner
 
 import (
-	"net"
-	"strings"
-
 	"github.com/ZhuriLab/Starmap/pkg/passive"
 	"github.com/ZhuriLab/Starmap/pkg/resolve"
-	"github.com/projectdiscovery/dnsx/libs/dnsx"
+	"github.com/ZhuriLab/Starmap/pkg/util"
+	"net"
+	"strings"
 )
 
 // initializePassiveEngine creates the passive engine and loads sources etc
@@ -55,9 +54,11 @@ func (r *Runner) initializeActiveEngine() error {
 		resolvers = append(resolvers, resolve.DefaultResolversCN...)
 	} else if r.options.DNS == "all" {
 		resolvers = append(resolve.DefaultResolvers, resolve.DefaultResolversCN...)
-	} else if len(r.options.YAMLConfig.Resolvers) > 0 {
+	} else if r.options.DNS == "conf" {
 		resolvers = append(resolvers, r.options.YAMLConfig.Resolvers...)
 	}
+
+	resolvers = util.RemoveDuplicateElement(resolvers)
 
 	// Add default 53 UDP port if missing
 	for i, resolver := range resolvers {
@@ -66,12 +67,14 @@ func (r *Runner) initializeActiveEngine() error {
 		}
 	}
 
-	r.resolverClient = resolve.New()
-	var err error
-	r.resolverClient.DNSClient, err = dnsx.New(dnsx.Options{BaseResolvers: resolvers, MaxRetries: 5})
-	if err != nil {
-		return nil
-	}
+	r.Resolvers = resolvers
+
+	//r.resolverClient = resolve.New()
+	//var err error
+	//r.resolverClient.DNSClient, err = dnsx.New(dnsx.Options{BaseResolvers: resolvers, MaxRetries: 5})
+	//if err != nil {
+	//	return nil
+	//}
 
 	return nil
 }

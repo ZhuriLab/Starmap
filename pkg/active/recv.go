@@ -82,18 +82,41 @@ func (r *runner) recvChanel(ctx context.Context) error {
 		r.hm.Del(domain)
 
 		if dns.ANCount > 0 {
-			atomic.AddUint64(&r.successIndex, 1)
-			result := RecvResult {
-				Subdomain: domain,
-				Answers:   dns.Answers,
-				ResponseCode: dns.ResponseCode,
+			var ips []string
+			for _, answers := range dns.Answers {
+				if answers.Class == layers.DNSClassIN {
+					if answers.IP != nil {
+						ips = append(ips, answers.IP.String())
+					}
+				}
 			}
 
-			select {
-			case <-ctx.Done():
-				gologger.Error().Msg("recvChanel ctx.Done()............")
-			default:
-				r.recver <- result
+			if len(ips) == 0 {
+				continue
+			}
+			
+			var skip bool
+			for _, ip := range ips {
+				// Ignore the host if it exists in wildcard ips map
+				if _, ok := r.options.WildcardIPs[ip]; ok {
+					skip = true
+					break
+				}
+			}
+
+			// 不是泛解析出的 ip 的记录
+			if !skip {
+				select {
+				case <-ctx.Done():
+					gologger.Error().Msg("recvChanel ctx.Done()............")
+				default:
+					atomic.AddUint64(&r.successIndex, 1)
+					r.recver <- RecvResult {
+						Subdomain: domain,
+						Answers:   dns.Answers,
+						ResponseCode: dns.ResponseCode,
+					}
+				}
 			}
 		}
 	}
