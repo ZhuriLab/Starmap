@@ -70,10 +70,11 @@ type Keys struct {
 
 // Result is a result structure returned by a source
 type Result struct {
-	Type   ResultType
-	Source string
-	Value  string
-	Error  error
+	Type   			ResultType
+	Source 			string
+	Value  			string
+	Error  			error
+	IpPorts     	map[string][]int
 }
 
 // ResultType is the type of result returned by the source

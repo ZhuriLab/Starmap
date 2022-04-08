@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.6
+- [fix] 修复-s 指定源不生效的 bug
+- [feat] 网络空间引擎搜集子域时，同时获取子域的 ip、 开放的端口
+  - [x]  shodan
+  - [x]  fofa
+  - [x]  zoomeyeapi
+  
+- 主动爆破、泛解析过滤改为默认不使用，使用时请添加 -b/-rW 参数
+
 ## v0.0.5
 - 子域名爆破时泛解析过滤
     -   参考 https://github.com/boy-hack/ksubdomain/issues/5

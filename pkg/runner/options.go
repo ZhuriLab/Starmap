@@ -55,7 +55,7 @@ type Options struct {
 	BruteWordlist      string // BruteWordlist is path to a different wordlist file for brute forcing
 	LevelDic      	   string // LevelDic is path to a different wordlist file for brute forcing
 	Level      	   	   int 	// Level Number of blasting subdomain layers
-	Brute			   bool   // Use DNS brute forcing subdomain
+	Brute			   bool   // Brute Use DNS brute forcing subdomain
 	Number 			   int   // Number of DNS forced subdomains
 	Verify 			   bool   // Verify is DNS authentication
 	DNS                string // DNS server
@@ -142,10 +142,10 @@ func ParseOptions() *Options {
 		flagSet.StringVar(&options.LevelDic, "ld", "", "Multilevel subdomain dictionary(level > 2 use)\ndns 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认"),
 		flagSet.IntVar(&options.Level, "l", 2, "Number of blasting subdomain layers\n枚举几级域名，默认为二级域名"),
 		flagSet.IntVar(&options.Number, "n", 1, "Number of DNS forced subdomains\ndns爆破每个域名的次数，默认跑一次"),
-		flagSet.BoolVar(&options.Brute, "b", true, "Use DNS brute forcing subdomain(default true)\n被动加 dns 主动爆破(默认使用)"),
+		flagSet.BoolVarP(&options.Brute, "brute",  "b",false, "Use DNS brute forcing subdomain(default false)\n被动加 dns 主动爆破(默认不使用)"),
 		flagSet.BoolVar(&options.Verify, "verify", false, "DNS authentication survival, Export only verified domain names\n验证被动获取的域名，使用后仅输出验证存活的域名"),
 		flagSet.StringVar(&options.DNS, "dns", "cn", "DNS server, cn:China dns, in:International, all:(cn+in DNS), conf:(read ./config/Starmap/config.yaml), Select according to the target. \nDNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, conf: 从配置文件 ./config/Starmap/config.yaml获取)，根据目标选择"),
-		flagSet.BoolVarP(&options.RemoveWildcard, "active", "nW", true, "Domain name pan resolution filtering\n爆破时过滤泛解析(default true)"),
+		flagSet.BoolVarP(&options.RemoveWildcard, "active", "rW", false, "Domain name pan resolution filtering\n爆破时过滤泛解析(default false)"),
 		flagSet.IntVar(&options.MaxWildcardChecks, "mW", 0, "Number of random domain names during universal resolution detection(default len(resolvers)*2)\n泛解析检测时的随机域名数量(default len(resolvers)*2)"),
 	)
 

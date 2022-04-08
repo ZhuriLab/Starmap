@@ -59,6 +59,29 @@ func MergeMap(map1, map2 map[string]resolve.HostEntry) map[string]resolve.HostEn
 	return map3
 }
 
+
+func MergeIpPortMap(map1, map2 map[string][]int) map[string][]int {
+	map3 := make(map[string][]int)
+
+	for i,v := range map1 {
+		for j,w := range map2 {
+			if i== j {
+				map3[i] = w
+
+			}else{
+				if _, ok := map3[i]; !ok {
+					map3[i] = v
+				}
+				if _, ok := map3[j]; !ok {
+					map3[j] = w
+				}
+			}
+		}
+	}
+	return map3
+}
+
+
 // RemoveDuplicateElement  数组去重
 func RemoveDuplicateElement(strs []string) []string {
 	result := make([]string, 0, len(strs))
@@ -75,6 +98,7 @@ func RemoveDuplicateElement(strs []string) []string {
 	return result
 }
 
+
 // In 判断一个字符串是否在另一个字符数组里面，存在返回true
 func In(target string, strs []string) bool {
 	target = strings.TrimSpace(target)
@@ -85,3 +109,14 @@ func In(target string, strs []string) bool {
 	}
 	return false
 }
+
+// In 判断一个字符串是否在另一个字符数组里面，存在返回true
+func InInt(target int, strs []int) bool {
+	for _, element := range strs {
+		if target == element {
+			return true
+		}
+	}
+	return false
+}
+

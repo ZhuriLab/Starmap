@@ -57,7 +57,7 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 				gologger.Warning().Msgf("Could not run source %s: %s\n", result.Source, result.Error)
 			case subscraping.Subdomain:
 				// Validate the subdomain found and remove wildcards from
-				if !strings.HasSuffix(result.Value, "."+domain) {
+				if result.Value != domain && !strings.HasSuffix(result.Value, "."+domain) {
 					continue
 				}
 				subdomain := strings.ReplaceAll(strings.ToLower(result.Value), "*.", "")
@@ -76,10 +76,23 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 				// Check if the subdomain is a duplicate. If not,
 				// send the subdomain for resolution.
 				if _, ok := uniqueMap[subdomain]; ok {
+					if result.IpPorts != nil {
+						tmp := uniqueMap[subdomain].IpPorts
+						if tmp != nil {
+							tmp = util.MergeIpPortMap(tmp, result.IpPorts)
+							hostEntry := resolve.HostEntry{Host: subdomain, Source: result.Source, IpPorts: tmp}
+							uniqueMap[subdomain] = hostEntry
+						} else {
+							hostEntry := resolve.HostEntry{Host: subdomain, Source: result.Source, IpPorts: result.IpPorts}
+							uniqueMap[subdomain] = hostEntry
+						}
+
+					}
 					continue
+
 				}
 
-				hostEntry := resolve.HostEntry{Host: subdomain, Source: result.Source}
+				hostEntry := resolve.HostEntry{Host: subdomain, Source: result.Source, IpPorts: result.IpPorts}
 
 				uniqueMap[subdomain] = hostEntry
 

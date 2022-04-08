@@ -27,9 +27,12 @@ func (r *Runner) initializePassiveEngine() {
 		sources = append(sources, r.options.YAMLConfig.Recursive...)
 	// Otherwise, use the CLI/YAML sources
 	default:
-		sources = append(sources, r.options.YAMLConfig.Sources...)
+		if len(r.options.Sources) == 0 {
+			sources = append(sources, r.options.YAMLConfig.Sources...)
+		} else {
+			sources = r.options.Sources
+		}
 	}
-
 	r.passiveAgent = passive.New(sources, exclusions)
 }
 

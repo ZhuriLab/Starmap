@@ -180,12 +180,23 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 					continue
 				}
 
+				var ipPorts map[string][]int
+
+				if uniqueMap[result.Subdomain].IpPorts != nil {
+					ipPorts = uniqueMap[result.Subdomain].IpPorts
+				} else {
+					ipPorts = make(map[string][]int)
+				}
+
 				var skip bool
 				for _, ip := range ips {
 					// Ignore the host if it exists in wildcard ips map
 					if _, ok := r.options.WildcardIPs[ip]; ok {
 						skip = true
 						break
+					}
+					if ipPorts[ip] == nil {
+						ipPorts[ip] = nil
 					}
 				}
 
@@ -195,7 +206,7 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 					hostEntry := resolve.HostEntry{
 						Host: 		result.Subdomain,
 						Source: 	"DNS Brute Forcing",
-						Ips: 		ips,
+						IpPorts: 	ipPorts,
 						CNames: 	cnames,
 					}
 					uniqueMap[result.Subdomain] = hostEntry
@@ -262,6 +273,14 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 				continue
 			}
 
+			var ipPorts map[string][]int
+
+			if uniqueMap[result.Subdomain].IpPorts != nil {
+				ipPorts = uniqueMap[result.Subdomain].IpPorts
+			} else {
+				ipPorts = make(map[string][]int)
+			}
+
 			var skip bool
 			for _, ip := range ips {
 				// Ignore the host if it exists in wildcard ips map
@@ -269,6 +288,11 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 					skip = true
 					break
 				}
+
+				if ipPorts[ip] == nil {
+					ipPorts[ip] = nil
+				}
+
 			}
 
 			// 不是泛解析出的 ip 的记录
@@ -276,8 +300,8 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 				hostEntry := resolve.HostEntry{
 					Host:   result.Subdomain,
 					Source: uniqueMap[result.Subdomain].Source,
-					Ips:    ips,
 					CNames: cnames,
+					IpPorts: ipPorts,
 				}
 
 				AuniqueMap[result.Subdomain] = hostEntry

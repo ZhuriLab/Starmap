@@ -24,11 +24,11 @@ type ResolutionPool struct {
 
 // HostEntry defines a host with the source
 type HostEntry struct {
-	Host   		string 		`json:"host"`
-	Source 		string 		`json:"source"`
-	Ips    		[]string	`json:"ips"`
-	CNames  	[]string	`json:"cnames"`
-	TakeOver 	bool		`json:"take_over"`
+	Host   		string 				`json:"host"`
+	Source 		string 				`json:"source"`
+	IpPorts     map[string][]int	`json:"ip_ports"`
+	CNames  	[]string			`json:"cnames"`
+	TakeOver 	bool				`json:"take_over"`
 }
 
 // Result contains the result for a host resolution

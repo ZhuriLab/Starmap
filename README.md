@@ -1,10 +1,18 @@
 # 🌟 Starmap
+
 ![Starmap](https://socialify.git.ci/ZhuriLab/Starmap/image?description=1&font=Inter&forks=1&issues=1&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F69614236%3Fs%3D200%26v%3D4&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
-以 subfinder 为基础，融合 ksubdomain、 Amass 的一些优点进行二次开发的一款子域名收集工具，并增加了子域名接管检测功能。可以很方便作为 go 库集成进入项目中。
 
 - [Amass](https://github.com/OWASP/Amass/) 虽然搜集的方法多，但太笨重，不方便集成，目标多了会内存爆炸
 - [subfinder](https://github.com/projectdiscovery/subfinder) 非常方便集成，但是只有被动的方式
 - [ksubdomain](https://github.com/boy-hack/ksubdomain) 仅主动爆破，以及验证
+
+遂以 subfinder 为基础，融合 ksubdomain、 Amass 的一些优点进行二次开发的一款子域名收集工具，可以很方便作为 go 库集成进入项目中。并增加了以下功能：
+
+-   子域名接管检测功能
+-   网络空间扫描引擎被动获取子域时，增加ip、端口开放收集
+    -   shodan 	获取 ip\端口
+    -   fofa       获取 ip\端口
+    -   zoomeyeapi 获取 ip
 
 # 🍺 Installation
 下载二进制 https://github.com/ZhuriLab/Starmap/releases
@@ -15,69 +23,85 @@
 - MacOS 自带`libpcap`,无需其他操作 
 
 # 🔅 Usage
-```
-Flags:
-INPUT:
-     -d, -domain string[]  domains to find subdomains for
-     枚举的目标域名
-     -dL, -list string  file containing list of domains for subdomain discovery
-     枚举的域名列表的文件
 
-SOURCE:
-     -s, -sources string[]  specific sources to use for discovery (-s crtsh,github)
-     被动使用的源
-     -recursive  use only recursive sources
-     仅使用递归源
-     -all  Use all sources (slow) for enumeration
-     使用所有源进行枚举
-     -es, -exclude-sources string[]  sources to exclude from enumeration (-es archiveis,zoomeye)
-      被动枚举中排除使用的源列表
+1. 被动模式运行并保存到文件（只保存域名）
 
-OUTPUT:
-     -o, -output string  file to write output to
-     输出文件名
-     -oJ, -json  write output in JSONL(ines) format
-     Json格式输出，该选项输出内容丰富,输出到文件需要配合 -o res.json
+    ```bash
+    Starmap -d baidu.com -o res.txt
+    ```
 
-CONFIGURATION:
-     -config string  flag config file
-     自定义API密钥等的配置文件位置 (default "/Users/yhy/.config/Starmap/config.yaml")
-     -nW, -active  display active subdomains only
-     仅显示活动子域
-     -proxy string  http proxy to use with subfinder
-     指定被动api获取子域名时的代理
+2. 被动加主动爆破, 过滤泛解析 json 格式输出（json 输出更丰富）
 
-DEBUG:
-     -silent  show only subdomains in output
-     使用后屏幕将仅输出结果域名
-     -version  show version of Starmap
-     输出当前版本
-     -v  show verbose output
-     显示详细输出
+    ```bash
+    Starmap -d baidu.com -b -rW -oJ -o res.json
+    ```
+    
+3. 其他选项
 
-DNS BRUTE FORCING SUBDOMAIN:
-     -w string  Path to a different wordlist file for brute forcing
-     dns 爆破使用的字典
-     -ld string  Multilevel subdomain dictionary(level > 2 use)
-     dns 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认
-     -l int  Number of blasting subdomain layers
-     枚举几级域名，默认为二级域名 (default 2)
-     -n int  Number of DNS forced subdomains
-     dns爆破每个域名的次数，默认跑一次 (default 1)
-     -b  Use DNS brute forcing subdomain(default true)
-     被动加 dns 主动爆破(默认使用) (default true)
-     -verify  DNS authentication survival, Export only verified domain names
-     验证被动获取的域名，使用后仅输出验证存活的域名
-     -dns string  DNS server, cn:China dns, in:International, all:(cn+in DNS),Select according to the target.
-     DNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, 根据目标选择 (default "cn")
-
-SUBDOMAIN TAKEOVER:
-     -takeover   Scan subdomain takeover (default False).
-     子域名接管检测 (默认：false)
-     -sa  subdomain take over: Request to test each URL (by default, only the URL matching CNAME is requested to test).
-     子域名接管检测：请求测试每个URL（默认情况下，仅请求测试与CNAME匹配的URL）
-```
-
+   ```bash
+   Flags:
+   INPUT:
+        -d, -domain string[]  domains to find subdomains for
+        枚举的目标域名
+        -dL, -list string  file containing list of domains for subdomain discovery
+        枚举的域名列表的文件
+   
+   SOURCE:
+        -s, -sources string[]  specific sources to use for discovery (-s crtsh,github)
+        被动使用的源
+        -recursive  use only recursive sources
+        仅使用递归源
+        -all  Use all sources (slow) for enumeration
+        使用所有源进行枚举
+        -es, -exclude-sources string[]  sources to exclude from enumeration (-es archiveis,zoomeye)
+         被动枚举中排除使用的源列表
+   
+   OUTPUT:
+        -o, -output string  file to write output to
+        输出文件名
+        -oJ, -json  write output in JSONL(ines) format
+        Json格式输出，该选项输出内容丰富,输出到文件需要配合 -o res.json
+   
+   CONFIGURATION:
+        -config string  flag config file
+        自定义API密钥等的配置文件位置 (default "/Users/用户名/.config/Starmap/config.yaml")
+        -proxy string  http proxy to use with subfinder
+        指定被动api获取子域名时的代理
+   
+   DEBUG:
+        -silent  show only subdomains in output
+        使用后屏幕将仅输出结果域名
+        -version  show version of Starmap
+        输出当前版本
+        -v  show verbose output
+        显示详细输出
+   
+   DNS BRUTE FORCING SUBDOMAIN:
+        -w string  Path to a different wordlist file for brute forcing
+        dns 爆破使用的字典
+        -ld string  Multilevel subdomain dictionary(level > 2 use)
+        dns 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认
+        -l int  Number of blasting subdomain layers
+        枚举几级域名，默认为二级域名 (default 2)
+        -n int  Number of DNS forced subdomains
+        dns爆破每个域名的次数，默认跑一次 (default 1)
+        -brute  Use DNS brute forcing subdomain(default false)
+        被动加 dns 主动爆破(默认不使用)
+        -verify  DNS authentication survival, Export only verified domain names
+        验证被动获取的域名，使用后仅输出验证存活的域名
+        -dns string  DNS server, cn:China dns, in:International, all:(cn+in DNS), conf:(read ./config/Starmap/config.yaml), Select according to the target. 
+        DNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, conf: 从配置文件 ./config/Starmap/config.yaml获取)，根据目标选择 (default "cn")
+        -rW, -active  Domain name pan resolution filtering
+        爆破时过滤泛解析(default false)
+        -mW int  Number of random domain names during universal resolution detection(default len(resolvers)*2)
+        泛解析检测时的随机域名数量(default len(resolvers)*2)
+   
+   SUBDOMAIN TAKEOVER:
+        -takeover   Scan subdomain takeover (default False).
+        子域名接管检测 (默认：false)
+        -sa  subdomain take over: Request to test each URL (by default, only the URL matching CNAME is requested to test).
+        子域名接管检测：请求测试每个URL（默认情况下，仅请求测试与CNAME匹配的URL）
+   ```
 
 # 🎉 Starmap Go library
 
@@ -151,18 +175,16 @@ func main() {
 
 	// 输出详细信息
 	/*
-		Host   	string 		`json:"host"`
-		Source 	string 		`json:"source"`
-		Ips    	[]string	`json:"ips"`
-		CNames  []string	`json:"cnames"`
-		TakeOver 	bool		`json:"take_over"`
+	Host   		string 				`json:"host"`
+	Source 		string 				`json:"source"`
+	IpPorts     map[string][]int	`json:"ip_ports"`
+	CNames  	[]string			`json:"cnames"`
+	TakeOver 	bool				`json:"take_over"`
 	*/
 	for _, result := range subdomains {
-		fmt.Println(result.Source, result.Host, result.Ips, result.CNames, result.TakeOver)
+		fmt.Println(result.Source, result.Host, result.IpPorts, result.CNames, result.TakeOver)
 	}
 }
-
-
 ```
 
 # 📌 TODO

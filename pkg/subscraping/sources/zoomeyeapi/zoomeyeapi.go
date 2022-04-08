@@ -62,7 +62,13 @@ func (s *Source) Run(ctx context.Context, domain string, session *subscraping.Se
 			_ = resp.Body.Close()
 			pages = int(res.Total/1000) + 1
 			for _, r := range res.List {
-				results <- subscraping.Result{Source: s.Name(), Type: subscraping.Subdomain, Value: r.Name}
+				//fmt.Println(r.Ip)
+				ipPorts := make(map[string][]int)
+
+				for _, ip := range r.Ip {
+					ipPorts[ip] = nil
+				}
+				results <- subscraping.Result{Source: s.Name(), Type: subscraping.Subdomain, Value: r.Name, IpPorts: ipPorts}
 			}
 		}
 	}()

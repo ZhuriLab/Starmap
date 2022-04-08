@@ -17,7 +17,7 @@ const banner = `
 `
 
 // Version is the current version of Starmap
-const Version = `v0.0.5`
+const Version = `v0.0.6`
 
 // showBanner is used to show the banner to the user
 func showBanner() {
@@ -39,6 +39,7 @@ func (options *Options) normalRunTasks() {
 
 	// If we have a different version of subfinder installed
 	// previously, use the new iteration of config file.
+
 	if configFile.Version != Version {
 		configFile.Sources = passive.DefaultSources
 		configFile.AllSources = passive.DefaultAllSources
