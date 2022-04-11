@@ -67,8 +67,6 @@ type Options struct {
 
 // ParseOptions parses the command line flags provided by a user
 func ParseOptions() *Options {
-	showBanner()
-
 	config, err := GetConfigDirectory()
 
 	if err != nil {
@@ -186,6 +184,10 @@ func ParseOptions() *Options {
 	}
 
 	options.preProcessOptions()
+
+	if !options.Silent {
+		showBanner()
+	}
 
 	// Validate the options passed by the user and if any
 	// invalid options have been used, exit.
