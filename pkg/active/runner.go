@@ -140,7 +140,7 @@ func (r *runner) PrintStatus() {
 	gologger.Info().Msgf("\rSuccess:%d Send:%d Queue:%d Accept:%d Fail:%d Elapsed:%ds", r.successIndex, r.sendIndex, queue, r.recvIndex, r.faildIndex, tc)
 }
 
-func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx context.Context) map[string]resolve.HostEntry{
+func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx context.Context) (map[string]resolve.HostEntry, map[string]struct{}) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -160,6 +160,8 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 	}
 
 	go func(ctx context.Context) {
+		ipsMap := make(map[string]int)
+
 		for result := range r.recver {
 			var cnames []string
 			var ips []string
@@ -180,6 +182,20 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 					continue
 				}
 
+				/*
+				todo 这里只是记录了第一个 ip , 还是应该记录所有解析出的 ip ？
+				比如 这个域名 spotifyforbrands.com， 存在泛解析，也只是解析出一个 ip
+				*/
+
+				// ip 都记录一下 ，超过阈值，则认为是泛解析 ip
+				ipsMap[ips[0]] +=1
+
+				// 记录这个 ip 到泛解析 ip 列表中， 最终在返回结果中去除
+				if ipsMap[ips[0]] > r.options.MaxIPs {
+					r.options.WildcardIPsAc[ips[0]] = struct{}{}
+					continue
+				}
+
 				var ipPorts map[string][]int
 
 				if uniqueMap[result.Subdomain].IpPorts != nil {
@@ -195,6 +211,7 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 						skip = true
 						break
 					}
+
 					if ipPorts[ip] == nil {
 						ipPorts[ip] = nil
 					}
@@ -226,20 +243,20 @@ func (r *runner) RunEnumeration(uniqueMap map[string]resolve.HostEntry, ctx cont
 			r.PrintStatus()
 			if isLoadOver {
 				if r.hm.Length() <= 0 {
-					return uniqueMap
+					return uniqueMap, r.options.WildcardIPsAc
 				}
 			}
 		case <-r.fisrtloadChanel:
 			go r.retry(ctx) // 遍历hm，依次重试
 			isLoadOver = true
 		case <-ctx.Done():
-			return uniqueMap
+			return uniqueMap, r.options.WildcardIPsAc
 		}
 	}
 
 }
 
-func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ctx context.Context) map[string]resolve.HostEntry{
+func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ctx context.Context) (map[string]resolve.HostEntry, map[string]struct{}) {
 	AuniqueMap := make(map[string]resolve.HostEntry)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -256,6 +273,7 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 	}
 
 	go func(ctx context.Context) {
+		ipsMap := make(map[string]int)
 		for result := range r.recver {
 			var cnames []string
 			var ips []string
@@ -270,6 +288,15 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 			}
 
 			if len(ips) == 0 {
+				continue
+			}
+
+			// ip 都记录一下 ，超过阈值，则认为是泛解析 ip
+			ipsMap[ips[0]] +=1
+
+			// 记录这个 ip 到泛解析 ip 列表中， 最终在返回结果中去除
+			if ipsMap[ips[0]] > r.options.MaxIPs {
+				r.options.WildcardIPsAc[ips[0]] = struct{}{}
 				continue
 			}
 
@@ -320,7 +347,7 @@ func (r *runner) RunEnumerationVerify(uniqueMap map[string]resolve.HostEntry, ct
 			r.PrintStatus()
 			if isLoadOver {
 				if r.hm.Length() <= 0 {
-					return AuniqueMap
+					return AuniqueMap, r.options.WildcardIPsAc
 				}
 			}
 		case <-r.fisrtloadChanel:

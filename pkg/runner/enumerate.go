@@ -131,6 +131,8 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 
 	var wildcardIPs map[string]struct{}
 
+	var wildcardIPsAc map[string]struct{}
+
 	if r.options.RemoveWildcard {
 		gologger.Info().Msgf("%s 检测泛解析", domain)
 		var err error
@@ -150,26 +152,27 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		}
 
 		if len(wildcardIPs) > 0 {
-			gologger.Info().Msgf("域名:%s 存在泛解析, 自动过滤泛解析\n", domain)
+			gologger.Info().Msgf("域名:%s 存在泛解析, 自动过滤泛解析， %v\n", domain, wildcardIPs)
 		}
 	}
 
-
 	if r.options.Verify { // 验证模式
 		l := len(uniqueMap)
-		uniqueMap = active.Verify(uniqueMap, r.options.Silent, r.Resolvers, wildcardIPs)
+		uniqueMap, wildcardIPsAc = active.Verify(uniqueMap, r.options.Silent, r.Resolvers, wildcardIPs, r.options.MaxIps)
 		gologger.Info().Msgf("A total of %d were collected in passive mode, and %d were verified to be alive", l, len(uniqueMap))
 
 	} else {
 		gologger.Info().Msgf("Passive acquisition end, Found %d subdomains.", len(uniqueMap))
 	}
 
+	time.Sleep(5*time.Second)
 	if r.options.Brute {
 		if r.options.Number > 1 {
 			n := make(map[string]resolve.HostEntry)
 			// dns 爆破次数
 			for i := 1; i <= r.options.Number; i++ {
-				test := active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs)
+				var test map[string]resolve.HostEntry
+				test, wildcardIPsAc = active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs, r.options.MaxIps)
 				if i > 1 {
 					n = util.MergeMap(uniqueMap, test)
 				}
@@ -177,7 +180,7 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 			}
 			uniqueMap = n
 		} else {
-			uniqueMap = active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs)
+			uniqueMap, wildcardIPsAc = active.Enum(domain, uniqueMap, r.options.Silent, r.options.BruteWordlist, r.options.Level, r.options.LevelDic, r.Resolvers, wildcardIPs, r.options.MaxIps)
 		}
 
 	}
@@ -187,6 +190,25 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		gologger.Info().Msgf("Start subdomain takeover ...")
 		uniqueMap = subTakeOver.Process(uniqueMap, r.options.SAll, r.options.Verbose)
 	}
+
+
+
+	// 泛解析再次处理
+	if len(wildcardIPsAc) > 0 {
+		for _, result := range uniqueMap {
+			if result.IpPorts != nil {
+				var ips []string
+				for k, _ := range result.IpPorts {
+					ips = append(ips, k)
+				}
+
+				if _, ok := wildcardIPsAc[ips[0]]; ok {
+					delete(uniqueMap, result.Host)
+				}
+			}
+		}
+	}
+
 
 	outputter := NewOutputter(r.options.JSON)
 

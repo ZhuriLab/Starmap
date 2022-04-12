@@ -7,7 +7,6 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"github.com/projectdiscovery/gologger"
 	"sync/atomic"
 	"time"
 )
@@ -108,7 +107,7 @@ func (r *runner) recvChanel(ctx context.Context) error {
 			if !skip {
 				select {
 				case <-ctx.Done():
-					gologger.Error().Msg("recvChanel ctx.Done()............")
+					return nil
 				default:
 					atomic.AddUint64(&r.successIndex, 1)
 					r.recver <- RecvResult {

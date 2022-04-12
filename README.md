@@ -145,6 +145,7 @@ func main() {
 		Brute:				true,
 		Verify:             true,	// 验证找到的域名 
 		RemoveWildcard: 	true,	// 泛解析过滤 
+		MaxIPs:             100,    // 爆破时如果超出一定数量的域名指向同一个 ip，则认为是泛解析
 		Silent: 			false,	// 是否为静默模式，只输出找到的域名
 		DNS: 				"cn",	// dns 服务器区域选择，根据目标选择不同区域得到的结果不同，国内网站的话，选择 cn，dns 爆破结果比较多
 		BruteWordlist:      "",		// 爆破子域的域名字典，不填则使用内置的

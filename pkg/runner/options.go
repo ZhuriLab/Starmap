@@ -62,6 +62,7 @@ type Options struct {
 	Takeover		   bool   // subdomain takeover
 	SAll               bool   // Request to test each URL (by default, only the URL matching CNAME is requested to test).
 	MaxWildcardChecks  int		// MaxWildcardChecks Number of random domain names
+	MaxIps             int
 }
 
 
@@ -145,6 +146,8 @@ func ParseOptions() *Options {
 		flagSet.StringVar(&options.DNS, "dns", "cn", "DNS server, cn:China dns, in:International, all:(cn+in DNS), conf:(read ./config/Starmap/config.yaml), Select according to the target. \nDNS服务器，默认国内的服务器(cn)(cn: 表示使用国内的 dns, in:国外 dns，all: 全部内置 dns, conf: 从配置文件 ./config/Starmap/config.yaml获取)，根据目标选择"),
 		flagSet.BoolVarP(&options.RemoveWildcard, "active", "rW", false, "Domain name pan resolution filtering\n爆破时过滤泛解析(default false)"),
 		flagSet.IntVar(&options.MaxWildcardChecks, "mW", 0, "Number of random domain names during universal resolution detection(default len(resolvers)*2)\n泛解析检测时的随机域名数量(default len(resolvers)*2)"),
+		flagSet.IntVar(&options.MaxIps, "mI", 100, "When blasting, if more than a certain number of domain names point to the same IP, it is considered as universal resolution(default 100)\n爆破时如果超出一定数量的域名指向同一个 ip，则认为是泛解析(default 100)"),
+
 	)
 
 	createGroup(flagSet, "takeover", "subdomain takeover",

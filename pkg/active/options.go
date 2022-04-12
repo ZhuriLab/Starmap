@@ -14,6 +14,8 @@ type Options struct {
 	Output       string // 输出文件名
 	Silent       bool
 	WildcardIPs  map[string]struct{}
+	WildcardIPsAc  map[string]struct{}
+	MaxIPs       int
 	TimeOut      int
 	Retry        int
 	Method       string // verify模式 enum模式 test模式

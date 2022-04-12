@@ -7,7 +7,7 @@ import (
 	"github.com/projectdiscovery/gologger"
 )
 
-func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fileName string, level int, levelDict string, resolvers []string, wildcardIPs map[string]struct{}) map[string]resolve.HostEntry {
+func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fileName string, level int, levelDict string, resolvers []string, wildcardIPs map[string]struct{}, maxIPs int) (map[string]resolve.HostEntry, map[string]struct{}) {
 	gologger.Info().Msgf("Start DNS blasting of %s", domain)
 	var levelDomains []string
 	if levelDict != "" {
@@ -28,6 +28,7 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		Output:       "",
 		Silent:       silent,
 		WildcardIPs:  wildcardIPs,
+		MaxIPs:		  maxIPs,
 		TimeOut:      5,
 		Retry:        6,
 		Level:        level,  				// 枚举几级域名，默认为2，二级域名,
@@ -43,13 +44,13 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		gologger.Fatal().Msgf("%s", err)
 	}
 
-	enumMap := r.RunEnumeration(uniqueMap, ctx)
+	enumMap, wildcardIPs := r.RunEnumeration(uniqueMap, ctx)
 
 	r.Close()
-	return enumMap
+	return enumMap, wildcardIPs
 }
 
-func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}) map[string]resolve.HostEntry {
+func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}, maxIPs int) (map[string]resolve.HostEntry, map[string]struct{}) {
 	gologger.Info().Msgf("Start to verify the collected sub domain name results, a total of %d", len(uniqueMap))
 
 	opt := &Options {
@@ -60,6 +61,7 @@ func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []str
 		Output:       "",
 		Silent:       silent,
 		WildcardIPs:  wildcardIPs,
+		MaxIPs:		  maxIPs,
 		TimeOut:      5,
 		Retry:        6,
 		Method:       "verify",
@@ -71,9 +73,9 @@ func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []str
 		gologger.Fatal().Msgf("%s", err)
 	}
 
-	AuniqueMap := r.RunEnumerationVerify(uniqueMap, ctx)
+	AuniqueMap, wildcardIPs := r.RunEnumerationVerify(uniqueMap, ctx)
 
 	r.Close()
 
-	return AuniqueMap
+	return AuniqueMap, wildcardIPs
 }
