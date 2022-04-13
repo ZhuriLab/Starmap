@@ -45,6 +45,7 @@ func New(options *Options) (*runner, error) {
 	r := new(runner)
 	r.options = options
 
+	r.options.WildcardIPsAc = make(map[string]struct{})
 	r.ether = device.AutoGetDevices()
 
 	r.hm = statusdb.CreateMemoryDB()

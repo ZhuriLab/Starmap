@@ -12,9 +12,9 @@ type Options struct {
 	FileName     string // 字典文件名
 	Resolvers    []string
 	Output       string // 输出文件名
-	Silent       bool
-	WildcardIPs  map[string]struct{}
-	WildcardIPsAc  map[string]struct{}
+	Silent        bool
+	WildcardIPs   map[string]struct{}
+	WildcardIPsAc map[string]struct{}
 	MaxIPs       int
 	TimeOut      int
 	Retry        int
