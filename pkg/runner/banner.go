@@ -17,7 +17,7 @@ const banner = `
 `
 
 // Version is the current version of Starmap
-const Version = `v0.0.9`
+const Version = `v0.1.1`
 
 // showBanner is used to show the banner to the user
 func showBanner() {
@@ -54,13 +54,12 @@ func (options *Options) normalRunTasks() {
 	options.YAMLConfig = configFile
 }
 
-
 // firstRunTasks runs some housekeeping tasks done
 // when the program is ran for the first time
 func (options *Options) firstRunTasks() {
 	// Create the configuration file and display information
 	// about it to the user.
-	config := Providers {
+	config := Providers{
 		// Use the default list of resolvers by marshaling it to the config
 		Resolvers: resolve.DefaultResolvers,
 		// Use the default list of passive sources
@@ -69,7 +68,7 @@ func (options *Options) firstRunTasks() {
 		AllSources: passive.DefaultAllSources,
 		// Use the default list of recursive sources
 		Recursive: passive.DefaultRecursiveSources,
-		Version: Version,
+		Version:   Version,
 	}
 
 	err := config.MarshalWrite(options.Config)

@@ -66,15 +66,17 @@ type Keys struct {
 	FofaUsername         string   `json:"fofa_username"`
 	FofaSecret           string   `json:"fofa_secret"`
 	FullHunt             string   `json:"fullhunt"`
+	Quake                string   `json:"quake"`
+	Hunter               string   `json:"hunter"`
 }
 
 // Result is a result structure returned by a source
 type Result struct {
-	Type   			ResultType
-	Source 			string
-	Value  			string
-	Error  			error
-	IpPorts     	map[string][]int
+	Type    ResultType
+	Source  string
+	Value   string
+	Error   error
+	IpPorts map[string][]int
 }
 
 // ResultType is the type of result returned by the source

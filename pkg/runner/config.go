@@ -50,6 +50,8 @@ type Providers struct {
 	ZoomEyeApi     []string `yaml:"zoomeyeapi"`
 	Fofa           []string `yaml:"fofa"`
 	FullHunt       []string `json:"fullhunt"`
+	Quake          []string `yaml:"quake"`
+	Hunter         []string `yaml:"hunter"`
 	// Version indicates the version of subfinder installed.
 	Version string `yaml:"Starmap-version"`
 }
@@ -237,5 +239,14 @@ func (c *Providers) GetKeys() subscraping.Keys {
 	if len(c.FullHunt) > 0 {
 		keys.FullHunt = c.FullHunt[rand.Intn(len(c.FullHunt))]
 	}
+
+	if len(c.Quake) > 0 {
+		keys.Quake = c.Quake[rand.Intn(len(c.Quake))]
+	}
+
+	if len(c.Hunter) > 0 {
+		keys.Hunter = c.Hunter[rand.Intn(len(c.Hunter))]
+	}
+
 	return keys
 }

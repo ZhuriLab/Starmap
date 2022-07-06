@@ -11,7 +11,7 @@ func TestEnum(t *testing.T) {
 	resolvers := []string{
 		"114.114.114.114",
 	}
-	uniqueMap = Enum("baidu.com", uniqueMap, false,"", 2,"",resolvers, nil)
+	uniqueMap, _ = Enum("baidu.com", uniqueMap, false, "", 2, "", resolvers, nil, 30)
 	for k, v := range uniqueMap {
 		fmt.Println(k, v)
 	}
@@ -31,10 +31,8 @@ func TestVerify(t *testing.T) {
 		"114.114.114.114",
 	}
 
-	uniqueMap = Verify(uniqueMap, true, resolvers, nil)
+	uniqueMap, _ = Verify(uniqueMap, true, resolvers, nil, 30)
 	for k, v := range uniqueMap {
 		fmt.Println(k, v)
 	}
 }
-
-

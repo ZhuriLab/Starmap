@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+- [feat] 增加 henter、quake
+
+## v0.1.0
+- [fix] 修复一处 goroutine 泄露
+
 ## v0.0.9
 - [fix] 修复泛解析时 map 没有初始化的 bug
 

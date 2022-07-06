@@ -20,7 +20,7 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		levelDomains = GetDefaultSubNextData()
 	}
 
-	opt := &Options {
+	opt := &Options{
 		Rate:         Band2Rate("2m"),
 		Domain:       domain,
 		FileName:     fileName,
@@ -28,11 +28,11 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 		Output:       "",
 		Silent:       silent,
 		WildcardIPs:  wildcardIPs,
-		MaxIPs:		  maxIPs,
+		MaxIPs:       maxIPs,
 		TimeOut:      5,
 		Retry:        6,
-		Level:        level,  				// 枚举几级域名，默认为2，二级域名,
-		LevelDomains: levelDomains,   		// 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认
+		Level:        level,        // 枚举几级域名，默认为2，二级域名,
+		LevelDomains: levelDomains, // 枚举多级域名的字典文件，当level大于2时候使用，不填则会默认
 		Method:       "enum",
 	}
 
@@ -47,24 +47,25 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 	enumMap, wildcardIPs := r.RunEnumeration(uniqueMap, ctx)
 
 	r.Close()
+
 	return enumMap, wildcardIPs
 }
 
 func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}, maxIPs int) (map[string]resolve.HostEntry, map[string]struct{}) {
 	gologger.Info().Msgf("Start to verify the collected sub domain name results, a total of %d", len(uniqueMap))
 
-	opt := &Options {
-		Rate:         Band2Rate("2m"),
-		Domain:       "",
-		UniqueMap:    uniqueMap,
-		Resolvers:    resolvers,
-		Output:       "",
-		Silent:       silent,
-		WildcardIPs:  wildcardIPs,
-		MaxIPs:		  maxIPs,
-		TimeOut:      5,
-		Retry:        6,
-		Method:       "verify",
+	opt := &Options{
+		Rate:        Band2Rate("2m"),
+		Domain:      "",
+		UniqueMap:   uniqueMap,
+		Resolvers:   resolvers,
+		Output:      "",
+		Silent:      silent,
+		WildcardIPs: wildcardIPs,
+		MaxIPs:      maxIPs,
+		TimeOut:     5,
+		Retry:       6,
+		Method:      "verify",
 	}
 	ctx := context.Background()
 

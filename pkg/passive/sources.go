@@ -20,8 +20,10 @@ import (
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/fullhunt"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/github"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/hackertarget"
+	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/hunter"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/intelx"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/passivetotal"
+	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/quake"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/rapiddns"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/riddler"
 	"github.com/ZhuriLab/Starmap/pkg/subscraping/sources/robtex"
@@ -66,6 +68,8 @@ var DefaultSources = []string{
 	"virustotal",
 	"fofa",
 	"fullhunt",
+	"quake",
+	"hunter",
 }
 
 // DefaultRecursiveSources contains list of default recursive sources
@@ -120,6 +124,8 @@ var DefaultAllSources = []string{
 	"zoomeye",
 	"zoomeyeapi",
 	"fofa",
+	"quake",
+	"hunter",
 	"fullhunt",
 }
 
@@ -217,6 +223,10 @@ func (a *Agent) addSources(sources []string) {
 			a.sources[source] = &fofa.Source{}
 		case "fullhunt":
 			a.sources[source] = &fullhunt.Source{}
+		case "quake":
+			a.sources[source] = &quake.Source{}
+		case "hunter":
+			a.sources[source] = &hunter.Source{}
 		}
 	}
 }

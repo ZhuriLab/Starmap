@@ -58,61 +58,61 @@ func (r *runner) recvChanel(ctx context.Context) error {
 	var data []byte
 	var decoded []gopacket.LayerType
 	for {
-		data, _, err = handle.ReadPacketData()
-		if err != nil {
-			continue
-		}
-		err = parser.DecodeLayers(data, &decoded)
-		if err != nil {
-			continue
-		}
-		if !dns.QR {
-			continue
-		}
-		if dns.ID != r.dnsid {
-			continue
-		}
-		atomic.AddUint64(&r.recvIndex, 1)
-		if len(dns.Questions) == 0 {
-			continue
-		}
-		domain := string(dns.Questions[0].Name)
-
-		r.hm.Del(domain)
-
-		if dns.ANCount > 0 {
-			var ips []string
-			for _, answers := range dns.Answers {
-				if answers.Class == layers.DNSClassIN {
-					if answers.IP != nil {
-						ips = append(ips, answers.IP.String())
-					}
-				}
-			}
-
-			if len(ips) == 0 {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			data, _, err = handle.ReadPacketData()
+			if err != nil {
 				continue
 			}
-			
-			var skip bool
-			for _, ip := range ips {
-				// Ignore the host if it exists in wildcard ips map
-				if _, ok := r.options.WildcardIPs[ip]; ok {
-					skip = true
-					break
-				}
+			err = parser.DecodeLayers(data, &decoded)
+			if err != nil {
+				continue
 			}
+			if !dns.QR {
+				continue
+			}
+			if dns.ID != r.dnsid {
+				continue
+			}
+			atomic.AddUint64(&r.recvIndex, 1)
+			if len(dns.Questions) == 0 {
+				continue
+			}
+			domain := string(dns.Questions[0].Name)
 
-			// 不是泛解析出的 ip 的记录
-			if !skip {
-				select {
-				case <-ctx.Done():
-					return nil
-				default:
+			r.hm.Del(domain)
+
+			if dns.ANCount > 0 {
+				var ips []string
+				for _, answers := range dns.Answers {
+					if answers.Class == layers.DNSClassIN {
+						if answers.IP != nil {
+							ips = append(ips, answers.IP.String())
+						}
+					}
+				}
+
+				if len(ips) == 0 {
+					continue
+				}
+
+				var skip bool
+				for _, ip := range ips {
+					// Ignore the host if it exists in wildcard ips map
+					if _, ok := r.options.WildcardIPs[ip]; ok {
+						skip = true
+						break
+					}
+				}
+
+				// 不是泛解析出的 ip 的记录
+				if !skip {
 					atomic.AddUint64(&r.successIndex, 1)
-					r.recver <- RecvResult {
-						Subdomain: domain,
-						Answers:   dns.Answers,
+					r.recver <- RecvResult{
+						Subdomain:    domain,
+						Answers:      dns.Answers,
 						ResponseCode: dns.ResponseCode,
 					}
 				}

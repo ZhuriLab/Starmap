@@ -2,7 +2,7 @@
 LDFLAGS=-ldflags "-s -w"
 
 default:
-	go build ${LDFLAGS} -o "Starmap" main.go
+	go build ${LDFLAGS} -o "Starmap" cmd/Starmap.go
 
 # Compile Server - Windows x64
 windows:
