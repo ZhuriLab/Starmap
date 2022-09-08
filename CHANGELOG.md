@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.0
+- [feat] 增加dns域传送尝试
+- [feat] 尝试内存优化
+- [fix] 修复向关闭的 channel 发送数据导致程序异常退出
+
 ## v0.1.1
 - [feat] 增加 henter、quake
 

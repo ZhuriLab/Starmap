@@ -51,7 +51,7 @@ func Enum(domain string, uniqueMap map[string]resolve.HostEntry, silent bool, fi
 	return enumMap, wildcardIPs
 }
 
-func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}, maxIPs int) (map[string]resolve.HostEntry, map[string]struct{}) {
+func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []string, wildcardIPs map[string]struct{}, maxIPs int) (map[string]resolve.HostEntry, map[string]struct{}, []string) {
 	gologger.Info().Msgf("Start to verify the collected sub domain name results, a total of %d", len(uniqueMap))
 
 	opt := &Options{
@@ -74,9 +74,9 @@ func Verify(uniqueMap map[string]resolve.HostEntry, silent bool, resolvers []str
 		gologger.Fatal().Msgf("%s", err)
 	}
 
-	AuniqueMap, wildcardIPs := r.RunEnumerationVerify(uniqueMap, ctx)
+	AuniqueMap, wildcardIPs, unanswers := r.RunEnumerationVerify(ctx)
 
 	r.Close()
 
-	return AuniqueMap, wildcardIPs
+	return AuniqueMap, wildcardIPs, unanswers
 }

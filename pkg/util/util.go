@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"github.com/ZhuriLab/Starmap/pkg/resolve"
 	"math/rand"
+	"net"
 	"os"
 	"strings"
 	"time"
 )
-
 
 func RandomStr(n int) string {
 	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz1234567890")
@@ -41,12 +41,12 @@ func LinesInFile(fileName string) ([]string, error) {
 func MergeMap(map1, map2 map[string]resolve.HostEntry) map[string]resolve.HostEntry {
 	map3 := make(map[string]resolve.HostEntry)
 
-	for i,v := range map1 {
-		for j,w := range map2 {
-			if i== j {
+	for i, v := range map1 {
+		for j, w := range map2 {
+			if i == j {
 				map3[i] = w
 
-			}else{
+			} else {
 				if _, ok := map3[i]; !ok {
 					map3[i] = v
 				}
@@ -58,17 +58,16 @@ func MergeMap(map1, map2 map[string]resolve.HostEntry) map[string]resolve.HostEn
 	}
 	return map3
 }
-
 
 func MergeIpPortMap(map1, map2 map[string][]int) map[string][]int {
 	map3 := make(map[string][]int)
 
-	for i,v := range map1 {
-		for j,w := range map2 {
-			if i== j {
+	for i, v := range map1 {
+		for j, w := range map2 {
+			if i == j {
 				map3[i] = w
 
-			}else{
+			} else {
 				if _, ok := map3[i]; !ok {
 					map3[i] = v
 				}
@@ -80,7 +79,6 @@ func MergeIpPortMap(map1, map2 map[string][]int) map[string][]int {
 	}
 	return map3
 }
-
 
 // RemoveDuplicateElement  数组去重
 func RemoveDuplicateElement(strs []string) []string {
@@ -98,7 +96,6 @@ func RemoveDuplicateElement(strs []string) []string {
 	return result
 }
 
-
 // In 判断一个字符串是否在另一个字符数组里面，存在返回true
 func In(target string, strs []string) bool {
 	target = strings.TrimSpace(target)
@@ -110,7 +107,7 @@ func In(target string, strs []string) bool {
 	return false
 }
 
-// In 判断一个字符串是否在另一个字符数组里面，存在返回true
+// InInt 判断一个字符串是否在另一个字符数组里面，存在返回true
 func InInt(target int, strs []int) bool {
 	for _, element := range strs {
 		if target == element {
@@ -120,3 +117,15 @@ func InInt(target int, strs []int) bool {
 	return false
 }
 
+// IsInnerIP 判断是否为内网IP
+func IsInnerIP(ip string) bool {
+	IP := net.ParseIP(ip)
+	if ip4 := IP.To4(); ip4 != nil {
+		if IP.IsLoopback() || IP.IsLinkLocalMulticast() || IP.IsLinkLocalUnicast() {
+			return true
+		}
+		return ip4.IsPrivate()
+	}
+
+	return false
+}

@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"github.com/ZhuriLab/Starmap/pkg/active"
+	"github.com/ZhuriLab/Starmap/pkg/enum"
 	"github.com/ZhuriLab/Starmap/pkg/subTakeOver"
 	"github.com/ZhuriLab/Starmap/pkg/util"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
@@ -19,8 +20,10 @@ import (
 
 const maxNumCount = 2
 
+var serverDomain = []string{"ns1.", "ns2.", "dns1.", "dns2."}
+
 // EnumerateSingleDomain performs subdomain enumeration against a single domain
-func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outputs []io.Writer)  (error, map[string]resolve.HostEntry) {
+func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outputs []io.Writer) (error, *map[string]resolve.HostEntry, []string) {
 	gologger.Info().Msgf("Enumerating subdomains for %s\n", domain)
 
 	// Get the API keys for sources from the configuration
@@ -128,6 +131,19 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 	//}
 	wg.Wait()
 
+	// dns 域传送尝试
+	for _, nsDomain := range serverDomain {
+		a, _ := enum.ZoneTransfer(domain, domain, nsDomain+domain)
+		if len(a) > 0 {
+			for _, out := range a {
+				hostEntry := resolve.HostEntry{Host: out.Name, Source: out.Source, IpPorts: nil}
+				if _, ok := uniqueMap[out.Name]; ok {
+					continue
+				}
+				uniqueMap[out.Name] = hostEntry
+			}
+		}
+	}
 
 	var wildcardIPs map[string]struct{}
 
@@ -156,16 +172,17 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		}
 	}
 
+	var unanswers []string
 	if r.options.Verify { // 验证模式
 		l := len(uniqueMap)
-		uniqueMap, wildcardIPsAc = active.Verify(uniqueMap, r.options.Silent, r.Resolvers, wildcardIPs, r.options.MaxIps)
+		uniqueMap, wildcardIPsAc, unanswers = active.Verify(uniqueMap, r.options.Silent, r.Resolvers, wildcardIPs, r.options.MaxIps)
 		gologger.Info().Msgf("A total of %d were collected in passive mode, and %d were verified to be alive", l, len(uniqueMap))
 
 	} else {
 		gologger.Info().Msgf("Passive acquisition end, Found %d subdomains.", len(uniqueMap))
 	}
 
-	time.Sleep(5*time.Second)
+	time.Sleep(5 * time.Second)
 	if r.options.Brute {
 		if r.options.Number > 1 {
 			n := make(map[string]resolve.HostEntry)
@@ -191,8 +208,6 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		uniqueMap = subTakeOver.Process(uniqueMap, r.options.SAll, r.options.Verbose)
 	}
 
-
-
 	// 泛解析再次处理
 	if len(wildcardIPsAc) > 0 {
 		for _, result := range uniqueMap {
@@ -209,7 +224,6 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		}
 	}
 
-
 	outputter := NewOutputter(r.options.JSON)
 
 	// Now output all results in output writers
@@ -224,19 +238,19 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 		//if r.options.HostIP {
 		//	err = outputter.WriteHostIP(foundResults, w)
 		//} else {
-			//if r.options.RemoveWildcard {
-			//	err = outputter.WriteHostNoWildcard(foundResults, w)
-			//} else {
-			//	if r.options.CaptureSources {
-			//		err = outputter.WriteSourceHost(sourceMap, w)
-			//	} else {
-			//		err = outputter.WriteHost(uniqueMap, w)
-			//	}
-			//}
+		//if r.options.RemoveWildcard {
+		//	err = outputter.WriteHostNoWildcard(foundResults, w)
+		//} else {
+		//	if r.options.CaptureSources {
+		//		err = outputter.WriteSourceHost(sourceMap, w)
+		//	} else {
+		//		err = outputter.WriteHost(uniqueMap, w)
+		//	}
+		//}
 		//}
 		if err != nil {
 			gologger.Error().Msgf("Could not verbose results for %s: %s\n", domain, err)
-			return err, nil
+			return err, nil, nil
 		}
 	}
 
@@ -244,5 +258,5 @@ func (r *Runner) EnumerateSingleDomain(ctx context.Context, domain string, outpu
 	duration := durafmt.Parse(time.Since(now)).LimitFirstN(maxNumCount).String()
 
 	gologger.Info().Msgf("Found %d subdomains for %s in %s\n", len(uniqueMap), domain, duration)
-	return nil, uniqueMap
+	return nil, &uniqueMap, unanswers
 }

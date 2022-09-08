@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ZhuriLab/Starmap/pkg/util"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -11,7 +12,8 @@ import (
 	"time"
 )
 
-func (r *runner) recvChanel(ctx context.Context) error {
+func (r *runner) recvChanel(ctx context.Context, tag bool) error {
+	defer close(r.recver)
 	var (
 		snapshotLen = 65536
 		timeout     = -1 * time.Second
@@ -90,6 +92,9 @@ func (r *runner) recvChanel(ctx context.Context) error {
 					if answers.Class == layers.DNSClassIN {
 						if answers.IP != nil {
 							ips = append(ips, answers.IP.String())
+							if util.IsInnerIP(answers.IP.String()) {
+								r.unanswers = append(r.unanswers, domain)
+							}
 						}
 					}
 				}
@@ -116,7 +121,10 @@ func (r *runner) recvChanel(ctx context.Context) error {
 						ResponseCode: dns.ResponseCode,
 					}
 				}
+			} else if tag {
+				r.unanswers = append(r.unanswers, domain)
 			}
+
 		}
 	}
 }

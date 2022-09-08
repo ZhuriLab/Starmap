@@ -3,6 +3,7 @@ module github.com/ZhuriLab/Starmap
 go 1.17
 
 require (
+	github.com/caffix/resolve v0.5.4
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/corpix/uarand v0.1.1
 	github.com/google/gopacket v1.1.19
@@ -10,6 +11,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.4
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/miekg/dns v1.1.46
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/pkg/errors v0.9.1
 	github.com/projectdiscovery/chaos-client v0.2.0
@@ -27,11 +29,19 @@ require (
 )
 
 require (
+	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/caffix/queue v0.1.3 // indirect
+	github.com/caffix/stringset v0.1.0 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgraph-io/badger v1.6.2 // indirect
+	github.com/dgraph-io/ristretto v0.1.0 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/golang/glog v1.0.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
-	github.com/miekg/dns v1.1.43 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -42,8 +52,12 @@ require (
 	github.com/projectdiscovery/retryabledns v1.0.13-0.20210927160332-db15799e2e4d // indirect
 	github.com/projectdiscovery/retryablehttp-go v1.0.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
+	golang.org/x/tools v0.1.9 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/protobuf v1.27.1 // indirect
 )

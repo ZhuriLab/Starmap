@@ -17,7 +17,7 @@ const banner = `
 `
 
 // Version is the current version of Starmap
-const Version = `v0.1.1`
+const Version = `v0.2.0`
 
 // showBanner is used to show the banner to the user
 func showBanner() {

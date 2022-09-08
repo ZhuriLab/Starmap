@@ -20,7 +20,7 @@ type Runner struct {
 	options        *Options
 	passiveAgent   *passive.Agent
 	resolverClient *resolve.Resolver
-	Resolvers    []string
+	Resolvers      []string
 }
 
 // NewRunner creates a new runner struct instance by parsing
@@ -90,7 +90,7 @@ func (r *Runner) EnumerateMultipleDomains(ctx context.Context, reader io.Reader,
 				return err
 			}
 
-			err, _ = r.EnumerateSingleDomain(ctx, domain, append(outputs, file))
+			err, _, _ = r.EnumerateSingleDomain(ctx, domain, append(outputs, file))
 
 			file.Close()
 		} else if r.options.OutputDirectory != "" {
@@ -108,11 +108,11 @@ func (r *Runner) EnumerateMultipleDomains(ctx context.Context, reader io.Reader,
 				return err
 			}
 
-			err, _ = r.EnumerateSingleDomain(ctx, domain, append(outputs, file))
+			err, _, _ = r.EnumerateSingleDomain(ctx, domain, append(outputs, file))
 
 			file.Close()
 		} else {
-			err, _ = r.EnumerateSingleDomain(ctx, domain, outputs)
+			err, _, _ = r.EnumerateSingleDomain(ctx, domain, outputs)
 		}
 		if err != nil {
 			return err
