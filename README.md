@@ -118,12 +118,23 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"path/filepath"
+	"os/user"
+
 )
+
+func userHomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Print("Could not get user home directory: %s\n", err)
+	}
+	return usr.HomeDir
+}
 
 // 作为 go library 集成
 func main() {
 
-	config, _ := runner.UnmarshalRead("/Users/yhy/.config/Starmap/config.yaml")
+	config, _ := runner.UnmarshalRead(filepath.Join(userHomeDir(), ".config/Starmap/config.yaml"))
 
 	config.Recursive = resolve.DefaultResolvers
 	config.Sources = passive.DefaultSources
